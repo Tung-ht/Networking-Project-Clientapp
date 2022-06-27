@@ -1,6 +1,7 @@
 package com.gr10.clientapp;
 
 import com.gr10.clientapp.controller.LoginController;
+import com.gr10.clientapp.entity.User;
 import com.gr10.clientapp.utils.StageManager;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -12,6 +13,7 @@ public class FXApplication extends Application {
 
 	public static ConfigurableApplicationContext springContext;
 	public static Stage stage;
+	public static String username;
 
 	@Override
 	public void init() throws Exception {

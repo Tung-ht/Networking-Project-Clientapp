@@ -13,8 +13,6 @@ import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 @Component
 @FxmlView("/fxml/sign-in.fxml")
 public class SignInController {
@@ -41,7 +39,7 @@ public class SignInController {
     AuthenService authenService;
 
     @FXML
-    void openLogInPage(ActionEvent event) throws IOException {
+    void openLogInPage(ActionEvent event) {
         StageManager.changeScene(LoginController.class, "Login-Register");
     }
 
@@ -49,9 +47,12 @@ public class SignInController {
     void userSignIn(ActionEvent event) {
         String username = usernameTf.getText();
         String password = passwordTf.getText();
-        System.out.println(username + password);
         String inform = authenService.createNewAccount(username, password);
-        signInInfoLabel.setText(inform);
+        if (inform == null) {
+            signInInfoLabel.setText("Create account successfully!");
+        } else {
+            signInInfoLabel.setText(inform);
+        }
     }
 
 }

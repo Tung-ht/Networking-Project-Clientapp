@@ -8,24 +8,29 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthenServiceImpl implements AuthenService {
+
     @Autowired
     private UserRepo userRepo;
 
     @Override
     public String login(String username, String password) {
-        String inform = "";
+        String inform;
+        if (!validateInput(username, password)) {
+            inform = "Username and Password can not be empty!";
+            return inform;
+        }
         if (doesUsernameExist(username)) {
             User user = userRepo.findUserByUsername(username);
             if (user.getPassword().equals(password) && !isLoggingIn(username)) {
                 user.setIsLogin(1);
                 userRepo.save(user);
-                inform = "Login successfully";
+                inform = null;
             }
             else if (user.getPassword().equals(password) && isLoggingIn(username)) {
                 inform = "Your account is already logged in from another device";
             }
             else {
-                 inform = "Incorrect password!";
+                inform = "Incorrect password!";
             }
         }
         else {
@@ -36,10 +41,11 @@ public class AuthenServiceImpl implements AuthenService {
 
     @Override
     public String logout(String username) {
-        String inform = "";
+        String inform;
         if (doesUsernameExist(username)) {
             User user = userRepo.findUserByUsername(username);
             user.setIsLogin(0);
+            userRepo.save(user);
             inform = "Logout successfully!";
         }
         else {
@@ -50,7 +56,11 @@ public class AuthenServiceImpl implements AuthenService {
 
     @Override
     public String createNewAccount(String username, String password) {
-        String inform = "";
+        String inform;
+        if (!validateInput(username, password)) {
+            inform = "Username and Password can not be empty!";
+            return inform;
+        }
         if (userRepo.existsUserByUsername(username)) {
             inform = "Username already existed!";
         }
@@ -58,20 +68,23 @@ public class AuthenServiceImpl implements AuthenService {
             User user = new User();
             user.setUsername(username);
             user.setPassword(password);
+            user.setIsLogin(0);
             userRepo.save(user);
+            inform = null;
         }
-        return null;
+        return inform;
     }
 
     protected boolean isLoggingIn(String username) {
         User user = userRepo.findUserByUsername(username);
-        if (user.getIsLogin() == 1) {
-            return true;
-        }
-        else return false;
+        return user.getIsLogin() == 1;
     }
 
     protected boolean doesUsernameExist(String username) {
         return userRepo.existsUserByUsername(username);
+    }
+
+    protected boolean validateInput(String username, String password) {
+        return !username.equals("") && !password.equals("");
     }
 }
