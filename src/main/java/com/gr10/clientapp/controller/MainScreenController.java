@@ -3,7 +3,7 @@ package com.gr10.clientapp.controller;
 import com.gr10.clientapp.FXApplication;
 import com.gr10.clientapp.entity.FileInfo;
 import com.gr10.clientapp.service.AuthenService;
-import com.gr10.clientapp.service.impl.NetworkService;
+import com.gr10.clientapp.service.impl.NetworkServiceImpl;
 import com.gr10.clientapp.utils.AlertUtils;
 import com.gr10.clientapp.utils.StageManager;
 import javafx.event.ActionEvent;
@@ -28,7 +28,7 @@ public class MainScreenController {
     AuthenService authenService;
 
     @Autowired
-    NetworkService clientService;
+    NetworkServiceImpl networkService;
 
     @FXML
     private Button logoutBtn;
@@ -55,11 +55,11 @@ public class MainScreenController {
         noCol.setCellValueFactory(new PropertyValueFactory<>("fileNo"));
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         fileSizeCol.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
-        fileTable.setItems(clientService.getFiles());
+        fileTable.setItems(networkService.getFiles());
     }
 
     void refreshListFiles() {
-        fileTable.setItems(clientService.getFiles());
+        fileTable.setItems(networkService.getFiles());
     }
 
     @FXML
@@ -84,7 +84,7 @@ public class MainScreenController {
         boolean confirm = AlertUtils.showConfirmation("Delete File", "Are you sure to delete this file?",
                 selectedFile.getFileName() + " " + selectedFile.getFileSize());
         if (confirm) {
-            clientService.deleteFile(selectedFile);
+            networkService.deleteFile(selectedFile);
             refreshListFiles();
         }
     }
