@@ -3,14 +3,20 @@ package com.gr10.clientapp.service.impl;
 import com.gr10.clientapp.entity.User;
 import com.gr10.clientapp.repo.UserRepo;
 import com.gr10.clientapp.service.AuthenService;
+import com.gr10.clientapp.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class AuthenServiceImpl implements AuthenService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private NetworkService networkService;
 
     @Override
     public String login(String username, String password) {
@@ -40,12 +46,13 @@ public class AuthenServiceImpl implements AuthenService {
     }
 
     @Override
-    public String logout(String username) {
+    public String logout(String username) throws IOException {
         String inform;
         if (doesUsernameExist(username)) {
             User user = userRepo.findUserByUsername(username);
             user.setIsLogin(0);
             userRepo.save(user);
+            networkService.logout();
             inform = "Logout successfully!";
         }
         else {

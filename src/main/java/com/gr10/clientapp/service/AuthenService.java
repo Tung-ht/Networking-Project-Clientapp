@@ -1,5 +1,7 @@
 package com.gr10.clientapp.service;
 
+import java.io.IOException;
+
 public interface AuthenService {
     /**
      *  Return a string message whether success or error
@@ -7,7 +9,7 @@ public interface AuthenService {
      */
     String login(String username, String password);
 
-    String logout(String username);
+    String logout(String username) throws IOException;
 
     /**
      *  Return a string message whether success or error

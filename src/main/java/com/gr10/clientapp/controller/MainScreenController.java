@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 
 @Component
 @FxmlView("/fxml/main-screen.fxml")
@@ -50,16 +51,25 @@ public class MainScreenController {
     private TableColumn<?, ?> fileSizeCol;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws IOException {
         usernameLabel.setText(FXApplication.username);
         noCol.setCellValueFactory(new PropertyValueFactory<>("fileNo"));
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         fileSizeCol.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
-        fileTable.setItems(networkService.getFiles());
+        networkService.createFolder(FXApplication.username);
+        try {
+            fileTable.setItems(networkService.getFiles(FXApplication.username));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     void refreshListFiles() {
-        fileTable.setItems(networkService.getFiles());
+        try {
+            fileTable.setItems(networkService.getFiles(FXApplication.username));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -90,7 +100,7 @@ public class MainScreenController {
     }
 
     @FXML
-    void userLogout(ActionEvent event) {
+    void userLogout(ActionEvent event) throws IOException {
         String username = FXApplication.username;
         boolean confirm = AlertUtils.showConfirmation("Logout", "Are you sure to logout?", "Your account: " + username);
         if (confirm) {
