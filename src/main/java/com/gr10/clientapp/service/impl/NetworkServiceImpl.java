@@ -4,10 +4,8 @@ import com.gr10.clientapp.FXApplication;
 import com.gr10.clientapp.entity.FileInfo;
 import com.gr10.clientapp.service.NetworkService;
 import com.gr10.clientapp.utils.DataPackageUtils;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -15,26 +13,20 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
-@Component
 public class NetworkServiceImpl implements NetworkService {
 
-    private String HOST_ADDRESS;
-    private int PORT;
-    private int BLOCK_SIZE;
-    private int FILE_MAX_SIZE;
+    private final String HOST_ADDRESS = "172.16.184.133";
+    private final int PORT = 8888;
+    private final int BLOCK_SIZE = 1027;
+    private final int FILE_MAX_SIZE = 10485760;
 
     private Socket socket;
     private DataInputStream dis;
     private DataOutputStream dos;
 
-    private ObservableList<FileInfo> files;
+    private ObservableList<FileInfo> files = FXCollections.observableArrayList();;
 
-    @Autowired
-    public NetworkServiceImpl(@Value("${socket.host}") String HOST_ADDRESS,
-                              @Value("${socket.port}") int PORT,
-                              @Value("${socket.block-size}") int BLOCK_SIZE,
-                              @Value("${file-max-size}") int FILE_MAX_SIZE) throws IOException {
-        System.out.println(HOST_ADDRESS + " " + PORT + " " + BLOCK_SIZE + " " + FILE_MAX_SIZE);
+    public NetworkServiceImpl() throws IOException {
         this.socket = new Socket(HOST_ADDRESS, PORT);
         dis = new DataInputStream(this.socket.getInputStream());
         dos = new DataOutputStream(this.socket.getOutputStream());
@@ -42,35 +34,27 @@ public class NetworkServiceImpl implements NetworkService {
 
     @Override
     public void createFolder(String username) throws IOException {
-        DataPackageUtils.writeOpcode('0', dos);
-        DataPackageUtils.writeString(FXApplication.username, dos);
+//        DataPackageUtils.writeOpcode('0', dos);
+        DataPackageUtils.writeString("0" + FXApplication.username, dos);
+        DataPackageUtils.readString(dis);
     }
 
     public ObservableList<FileInfo> getFiles(String username) throws IOException {
 
         // send msg to server
-        DataPackageUtils.writeOpcode('1', dos);
-        DataPackageUtils.writeString(FXApplication.username, dos);
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
+//        DataPackageUtils.writeOpcode('1', dos);
+        DataPackageUtils.writeString("1" + FXApplication.username, dos);
 
         // read msg from server
         DataPackageUtils.readOpcode(dis);
 
-        int i = 1;
-        StringBuilder sb = DataPackageUtils.readString(dis);
-        while (sb != null) {
-            String fileName = sb.toString();
-            String fileSize = String.valueOf(DataPackageUtils.readShort(dis));
-            FileInfo fileInfo = new FileInfo(i, fileName, fileSize);
-            this.files.add(fileInfo);
+        int folder_size = DataPackageUtils.readUnsignedShort(dis);
 
-            // read next file info
-            sb = DataPackageUtils.readString(dis);
+        for (int i = 0; i < folder_size; i++) {
+            String fileName = DataPackageUtils.readString(dis).toString();
+            String fileSize = String.valueOf(DataPackageUtils.readUnsignedShort(dis));
+            FileInfo fileInfo = new FileInfo(i+1, fileName, fileSize + " kB");
+            this.files.add(fileInfo);
         }
         return this.files;
     }

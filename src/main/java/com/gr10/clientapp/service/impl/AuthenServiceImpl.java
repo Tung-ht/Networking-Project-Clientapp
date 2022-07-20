@@ -3,7 +3,6 @@ package com.gr10.clientapp.service.impl;
 import com.gr10.clientapp.entity.User;
 import com.gr10.clientapp.repo.UserRepo;
 import com.gr10.clientapp.service.AuthenService;
-import com.gr10.clientapp.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +13,6 @@ public class AuthenServiceImpl implements AuthenService {
 
     @Autowired
     private UserRepo userRepo;
-
-    @Autowired
-    private NetworkService networkService;
 
     @Override
     public String login(String username, String password) {
@@ -52,7 +48,6 @@ public class AuthenServiceImpl implements AuthenService {
             User user = userRepo.findUserByUsername(username);
             user.setIsLogin(0);
             userRepo.save(user);
-            networkService.logout();
             inform = "Logout successfully!";
         }
         else {

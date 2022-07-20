@@ -18,9 +18,3 @@ spring:
       dialect: org.hibernate.dialect.MySQL5InnoDBDialect
     open-in-view: off
 
-socket:
-  host: 127.0.0.1
-  port: 8888
-  block-size: 1024
-file-max-size: 10485760
-

@@ -28,8 +28,7 @@ public class MainScreenController {
     @Autowired
     AuthenService authenService;
 
-    @Autowired
-    NetworkServiceImpl networkService;
+    private NetworkServiceImpl networkService;
 
     @FXML
     private Button logoutBtn;
@@ -41,6 +40,8 @@ public class MainScreenController {
     private Button downloadBtn;
     @FXML
     private Button deleteBtn;
+    @FXML
+    private Button refreshBtn;
     @FXML
     private TableView<FileInfo> fileTable;
     @FXML
@@ -56,6 +57,7 @@ public class MainScreenController {
         noCol.setCellValueFactory(new PropertyValueFactory<>("fileNo"));
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         fileSizeCol.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
+        this.networkService = new NetworkServiceImpl();
         networkService.createFolder(FXApplication.username);
         try {
             fileTable.setItems(networkService.getFiles(FXApplication.username));
@@ -64,7 +66,12 @@ public class MainScreenController {
         }
     }
 
-    void refreshListFiles() {
+    @FXML
+    void refreshListFiles(ActionEvent event) {
+        refreshFiles();
+    }
+
+    void refreshFiles() {
         try {
             fileTable.setItems(networkService.getFiles(FXApplication.username));
         } catch (Exception e) {
@@ -95,7 +102,7 @@ public class MainScreenController {
                 selectedFile.getFileName() + " " + selectedFile.getFileSize());
         if (confirm) {
             networkService.deleteFile(selectedFile);
-            refreshListFiles();
+            refreshFiles();
         }
     }
 
@@ -105,6 +112,7 @@ public class MainScreenController {
         boolean confirm = AlertUtils.showConfirmation("Logout", "Are you sure to logout?", "Your account: " + username);
         if (confirm) {
             String inform = authenService.logout(username);
+            networkService.logout();
             System.out.println(inform);
             StageManager.changeScene(LoginController.class, "Login-Register");
         }
