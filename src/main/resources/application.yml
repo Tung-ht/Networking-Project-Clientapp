@@ -18,3 +18,12 @@ spring:
       dialect: org.hibernate.dialect.MySQL5InnoDBDialect
     open-in-view: off
 
+
+logging:
+  file.name: logs/network-app.log
+  pattern:
+    file: "%d [%t] %-5level %logger{36} - %msg%n"
+  level:
+    org.springframework.web: ERROR
+    org.hibernate: ERROR
+    com.gr10.clientapp: DEBUG

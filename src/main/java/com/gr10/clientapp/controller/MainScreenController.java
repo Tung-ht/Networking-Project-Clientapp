@@ -1,6 +1,7 @@
 package com.gr10.clientapp.controller;
 
 import com.gr10.clientapp.FXApplication;
+import com.gr10.clientapp.config.ClientConstant;
 import com.gr10.clientapp.entity.FileInfo;
 import com.gr10.clientapp.service.AuthenService;
 import com.gr10.clientapp.service.impl.NetworkServiceImpl;
@@ -14,6 +15,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
+import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 
+@Slf4j
 @Component
 @FxmlView("/fxml/main-screen.fxml")
 public class MainScreenController {
@@ -57,44 +60,64 @@ public class MainScreenController {
         noCol.setCellValueFactory(new PropertyValueFactory<>("fileNo"));
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         fileSizeCol.setCellValueFactory(new PropertyValueFactory<>("fileSize"));
-        this.networkService = new NetworkServiceImpl();
-        networkService.createFolder(FXApplication.username);
         try {
+            this.networkService = new NetworkServiceImpl();
+            networkService.createFolder(FXApplication.username);
             fileTable.setItems(networkService.getFiles(FXApplication.username));
         } catch (Exception e) {
-            e.printStackTrace();
+            authenService.logout(FXApplication.username);
+            AlertUtils.showError("Error", "There are some errors", e.getMessage());
+            System.exit(1);
         }
     }
 
     @FXML
-    void refreshListFiles(ActionEvent event) {
+    void refreshListFiles(ActionEvent event) throws IOException {
         refreshFiles();
     }
 
-    void refreshFiles() {
+    void refreshFiles() throws IOException {
         try {
+            fileTable.getItems().clear();
             fileTable.setItems(networkService.getFiles(FXApplication.username));
         } catch (Exception e) {
-            e.printStackTrace();
+            authenService.logout(FXApplication.username);
+            AlertUtils.showError("Error", "There are some errors", e.getMessage());
+            System.exit(1);
         }
     }
 
     @FXML
-    void uploadFile(ActionEvent event) {
+    void uploadFile(ActionEvent event) throws IOException {
         File file = new FileChooser().showOpenDialog(FXApplication.stage);
         if (file != null) {
-            System.out.println(file.getAbsoluteFile().getName());
+            long fileSize = file.length();
+            if (fileSize > ClientConstant.FILE_MAX_SIZE) {
+                AlertUtils.showError("Warning", "Could not upload file!", "File size is larger than 5 mB!");
+            } else {
+                try {
+                    networkService.uploadFile(file);
+                } catch (Exception e) {
+                    AlertUtils.showError("Error", "There are some errors", e.getMessage());
+                }
+            }
         }
-        AlertUtils.showError("Warning", "Could not upload file!", "File size is larger than 50 Mb!");
     }
 
     @FXML
     void downloadFile(ActionEvent event) {
+        FileInfo selectedFile = fileTable.getSelectionModel().getSelectedItem();
+        if (selectedFile == null) return;
 
+        boolean confirm = AlertUtils.showConfirmation("Download File", "Are you sure to download this file?",
+                selectedFile.getFileName() + " " + selectedFile.getFileSize());
+        if (confirm) {
+            networkService.downloadFile(selectedFile);
+        }
     }
 
     @FXML
-    void deleteFile(ActionEvent event) {
+    void deleteFile(ActionEvent event) throws IOException {
         FileInfo selectedFile = fileTable.getSelectionModel().getSelectedItem();
         if (selectedFile == null) return;
 
@@ -112,8 +135,8 @@ public class MainScreenController {
         boolean confirm = AlertUtils.showConfirmation("Logout", "Are you sure to logout?", "Your account: " + username);
         if (confirm) {
             String inform = authenService.logout(username);
+            // close connection
             networkService.logout();
-            System.out.println(inform);
             StageManager.changeScene(LoginController.class, "Login-Register");
         }
     }

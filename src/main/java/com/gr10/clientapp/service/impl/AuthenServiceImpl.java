@@ -29,7 +29,7 @@ public class AuthenServiceImpl implements AuthenService {
                 inform = null;
             }
             else if (user.getPassword().equals(password) && isLoggingIn(username)) {
-                inform = "Your account is already logged in from another device";
+                inform = "Your account is already logged in from another device!";
             }
             else {
                 inform = "Incorrect password!";
