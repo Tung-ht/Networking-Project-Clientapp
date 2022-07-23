@@ -2,7 +2,6 @@ package com.gr10.clientapp.utils;
 
 import java.net.*;
 import java.io.*;
-import java.nio.ByteBuffer;
 
 public class test {
     // initialize socket and input output streams

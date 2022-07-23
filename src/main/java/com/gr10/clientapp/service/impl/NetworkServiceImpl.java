@@ -37,7 +37,7 @@ public class NetworkServiceImpl implements NetworkService {
     public void createFolder(String username) throws IOException {
         // build message to request create new folder, opcode: '0'
         DataPackageSent createFolderMsg = new DataPackageSent();
-        createFolderMsg.addChar('0');
+        createFolderMsg.addChar(ClientConstant.OPCODE_CREATE);
         createFolderMsg.addString(FXApplication.username);
         createFolderMsg.sendPacket(dos);
 
@@ -48,7 +48,7 @@ public class NetworkServiceImpl implements NetworkService {
     public ObservableList<FileInfo> getFiles(String username) throws IOException {
         // build message to request get list files info, opcode '1'
         DataPackageSent getFilesMsg = new DataPackageSent();
-        getFilesMsg.addChar('1');
+        getFilesMsg.addChar(ClientConstant.OPCODE_LIST);
         getFilesMsg.addString(FXApplication.username);
         getFilesMsg.sendPacket(dos);
 
@@ -94,7 +94,7 @@ public class NetworkServiceImpl implements NetworkService {
         log.debug("File number of blocks: " + numberBlock);
         // build message to request upload, opcode: '3'
         DataPackageSent uploadMsg = new DataPackageSent();
-        uploadMsg.addChar('3');
+        uploadMsg.addChar(ClientConstant.OPCODE_UPLOAD);
         uploadMsg.addString(fileName);
         uploadMsg.addShort((short) numberBlock);
         uploadMsg.sendPacket(dos);
@@ -106,7 +106,7 @@ public class NetworkServiceImpl implements NetworkService {
         for (short blockNo = 0; blockNo < numberBlock; blockNo++) {
             // build message to send data block, opcode '5'
             DataPackageSent fileBlock = new DataPackageSent();
-            fileBlock.addChar('5');
+            fileBlock.addChar(ClientConstant.OPCODE_DATA_BLOCK);
             fileBlock.addShort(blockNo);
             for (int i = 0; i < ClientConstant.MAX_DATA_BLOCK_SIZE; i++) {
                 try {
@@ -126,7 +126,7 @@ public class NetworkServiceImpl implements NetworkService {
             } catch (Exception e) {
                 // send error msg to server: opcode = '8'
                 DataPackageSent errorMsg = new DataPackageSent();
-                errorMsg.addChar('8');
+                errorMsg.addChar(ClientConstant.OPCODE_ERROR);
                 errorMsg.sendPacket(dos);
                 AlertUtils.showError("Error", "Error when uploading file!", e.getMessage());
                 break;
@@ -150,7 +150,7 @@ public class NetworkServiceImpl implements NetworkService {
 
                 // build msg to request download, opcode: '4'
                 DataPackageSent downloadMsg = new DataPackageSent();
-                downloadMsg.addChar('4');
+                downloadMsg.addChar(ClientConstant.OPCODE_DOWNLOAD);
                 downloadMsg.addString(fileName);
                 downloadMsg.sendPacket(dos);
                 log.debug("Begin download file! | " + fileName);
@@ -177,13 +177,13 @@ public class NetworkServiceImpl implements NetworkService {
                     }
                     // send ACK, opcode: '6'
                     ackMsg.clear();
-                    ackMsg.addChar('6');
+                    ackMsg.addChar(ClientConstant.OPCODE_CONFIRM);
                     ackMsg.addShort(blockNo);
                     ackMsg.sendPacket(dos);
                 }
+                fileWriteBuffer.close();
                 log.debug("Download file done! | " + fileName);
                 AlertUtils.showConfirmation("Inform", "Download file", "File " + fileName + " is downloaded!");
-                fileWriteBuffer.close();
             } else {
                 log.debug("File " + fileName + " already exists!");
                 AlertUtils.showError("Error", "Error when downloading file!", "File " + fileName + " already exists!");
@@ -199,7 +199,7 @@ public class NetworkServiceImpl implements NetworkService {
         log.debug("Client request  | Delete file: " + selectedFile.getFileName());
         // build msg to request delete a file, opcode: '7'
         DataPackageSent dataPackageSent = new DataPackageSent();
-        dataPackageSent.addChar('7');
+        dataPackageSent.addChar(ClientConstant.OPCODE_DELETE);
         dataPackageSent.addString(selectedFile.getFileName());
         dataPackageSent.sendPacket(dos);
         // read msg from server
@@ -211,7 +211,7 @@ public class NetworkServiceImpl implements NetworkService {
         log.debug("Client request  | User request exit");
         // build msg to request exit, '9'
         DataPackageSent dataPackageSent = new DataPackageSent();
-        dataPackageSent.addChar('9');
+        dataPackageSent.addChar(ClientConstant.OPCODE_EXIT);
         dataPackageSent.sendPacket(dos);
         dis.close();
         dos.close();

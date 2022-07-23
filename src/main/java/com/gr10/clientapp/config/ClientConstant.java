@@ -3,7 +3,7 @@ package com.gr10.clientapp.config;
 public final class ClientConstant {
 
     public static final String HOST_ADDRESS = "0.tcp.ap.ngrok.io";
-    public static final int PORT            = 15056;
+    public static final int PORT            = 16433;
     public static final int TIME_OUT        = 3000;
 
     // for sending file data
